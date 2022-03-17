@@ -5,10 +5,18 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { install } from "pkg-install";
 import Listr from "listr";
-import execa from "execa";
+import execa, { shellSync } from "execa";
 const installProcess = async (packageName, options) => {
   if (packageName == "tailwind") {
     const tasks = new Listr([
+      {
+        title: "Installing Vite",
+        task: async () => {
+          const { stdout } = shellSync(
+            `npm create vite@latest ${porjectName} -- --template ${framework}`
+          );
+        },
+      },
       {
         title: "Installing Tailwindcss",
         task: () =>
