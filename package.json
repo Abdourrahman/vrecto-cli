@@ -1,7 +1,7 @@
 {
   "type": "module",
   "name": "vrecto-cli",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "vrecto cli",
   "main": "index.js",
   "scripts": {
@@ -14,6 +14,7 @@
   "license": "ISC",
   "dependencies": {
     "@headlessui/vue": "^1.5.0",
+    "capitalize": "^2.0.4",
     "chalk": "^4.1.2",
     "commander": "^9.0.0",
     "conf": "^10.1.1",
@@ -22,11 +23,8 @@
     "listr": "^0.14.3"
   },
   "devDependencies": {
-    "autoprefixer": "^10.4.4",
     "node-env-run": "^1.0.1",
-    "pkg-install": "^1.0.0",
-    "postcss": "^8.4.12",
-    "tailwindcss": "^3.0.23"
+    "pkg-install": "^1.0.0"
   },
   "repository": {
     "type": "git",

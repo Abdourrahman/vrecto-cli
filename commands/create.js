@@ -1,12 +1,11 @@
 import { config } from "./../config.js";
 import chalk from "chalk";
-import fs from "fs";
 import fsi from "fs-extra";
 import path from "path";
 import { fileURLToPath } from "url";
-
+import { compositionApi } from "./../templates/vue/compositionApi.js";
 const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+//const __dirname = path.dirname(__filename);
 /**
  * this command must accept the name of the component
  */
@@ -16,7 +15,7 @@ const createTemplate = (cmpName, options) => {
 <div>Hi I am your new component</div>
 </template>
 <script setup> 
-import { defineProps, defineEmits, watch, watchEffect,ref } from 'vue';
+import { defineProps, defineEmits, watch, watchEffect, ref } from 'vue';
 ${
   options.headless
     ? `import { ${getHeadlessCmps(options.headless)
@@ -62,9 +61,7 @@ export default {
 </script>`;
   //let cmpDir = path.join(__dirname, "../src/components");
   let cmpDir = path.join(process.cwd(), "/src/components");
-  console.log(process.cwd());
   let componentFile = cmpName.replace(/\./g, "/");
-  console.log(componentFile);
   if (fsi.existsSync(`${cmpDir}/${componentFile}.vue`)) {
     console.log(
       chalk.red.bold(`component ${cmpName} is already exist please try again.`)
@@ -73,7 +70,8 @@ export default {
     if (options.composition) {
       fsi.outputFile(
         `${cmpDir}/${componentFile}.vue`,
-        compositionApiTemplate,
+        // compositionApiTemplate,
+        compositionApi(options.headless),
         () => {}
       );
     } else if (options.option) {
