@@ -1,6 +1,29 @@
 import conf from "conf";
 export const config = new conf();
 
+config.set("appName", "");
+
+let tailwindconfig = `module.exports = {
+  content: [
+    "./index.html",
+    "./src/**/*.{vue,js,ts,jsx,tsx}",
+  ],
+  theme: {
+    extend: {},
+  },
+  plugins: [],
+}`;
+
+let tailcssconfig = `@tailwind base;
+@tailwind components;
+@tailwind utilities;`;
+
+let tailJsconfig = `import { createApp } from 'vue'
+import App from './App.vue'
+import './index.css'
+
+createApp(App).mount('#app')`;
+
 let headless = [
   {
     name: "menu",
@@ -49,3 +72,6 @@ let headless = [
   },
 ];
 config.set("headlessUi", headless);
+config.set("tailwindConfigModule", tailwindconfig);
+config.set("tailwindConfigCss", tailcssconfig);
+config.set("tailwindConfigJs", tailJsconfig);

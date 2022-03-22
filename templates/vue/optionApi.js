@@ -1,5 +1,6 @@
 const url = new URL(import.meta.url);
 
+const options = url.searchParams.get("name");
 export const compositionApiTemplate = `<template>
 <div>Hi I am your new component</div>
 </template>
@@ -13,7 +14,6 @@ ${
         .join(", ")} } from '@headlessui/vue';`
     : ``
 }
-
 const props = defineProps({})
 
 const emit = defineEmits(['counter-update']);

@@ -1,27 +1,35 @@
-import { config } from "./../config.js";
+import { config } from "../config.js";
 import execa, { shellSync } from "execa";
-import { install } from "pkg-install";
 import fsi from "fs-extra";
 import chalk from "chalk";
 import capitalize from "capitalize";
 
 const threads = new Map();
-console.log(
-  chalk.black.bgGreenBright.bold(`Installing ${config.get("appName")}`)
-);
 
 /**
 Vite Task
 */
+/**
+- check if the the project is available
+*/
 
 threads.set("vite", {
   name: `Installing vite for ${config.get("framework")} template`,
-  task() {
-    // if the framework is React
-    const { stdoutVue } = shellSync(
-      `npm create vite@latest ${config.get("framework")}-${config.get(
-        "appName"
-      )} -- --template ${config.get("framework")}`
+  task: async () => {
+    const { stdoutVite } = await execa(
+      "npm",
+      [
+        "create",
+        "vite@latest",
+        `${config.get("framework")}-${config.get("appName")}`,
+        ,
+        `--`,
+        `--template`,
+        `${config.get("framework")}`,
+      ],
+      {
+        cwd: `${process.cwd()}`,
+      }
     );
   },
 });
@@ -32,33 +40,23 @@ Vue Tasks
 
 threads.set("tailwind", {
   name: "Installing Tailwindcss",
-  task: () => {
-    // const { stdoutVue } = shellSync(
-    //   `npm install tailwindcss postcss autoprefixer`,
-    //   {
-    //     cwd: `${process.cwd()}/${config.get("framework")}-${config.get(
-    //       "appName"
-    //     )}`,
-    //   }
-    // );
-    (async () => {
-      const { stdout } = await install(
-        {
-          tailwindcss: "",
-          postcss: "",
-          autoprefixer: "",
-          "node-env-run": "~1",
-          "pkg-install": undefined,
-        },
-        {
-          cwd: `${process.cwd()}/${config.get("framework")}-${config.get(
-            "appName"
-          )}`,
-          dev: true,
-          prefer: "npm",
-        }
-      );
-    })();
+  task: async () => {
+    // if the framework is React
+    const { stdoutVue } = await shellSync(`npm init -y`, {
+      cwd: `${process.cwd()}/${config.get("framework")}-${config.get(
+        "appName"
+      )}`,
+    });
+
+    const { stdoutPinia } = await execa(
+      "npm",
+      ["install", "tailwindcss", "postcss", "autoprefixer", "--save-dev"],
+      {
+        cwd: `${process.cwd()}/${config.get("framework")}-${config.get(
+          "appName"
+        )}`,
+      }
+    );
   },
 });
 
@@ -74,21 +72,21 @@ threads.set("assets", {
       `${process.cwd()}/${config.get("framework")}-${config.get(
         "appName"
       )}/tailwind.config.js`,
-      tailwindconfig,
+      config.get("tailwindConfigModule"),
       () => {}
     );
     fsi.outputFile(
       `${process.cwd()}/${config.get("framework")}-${config.get(
         "appName"
       )}/src/index.css`,
-      tailcssconfig,
+      config.get("tailwindConfigCss"),
       () => {}
     );
     fsi.outputFile(
       `${process.cwd()}/${config.get("framework")}-${config.get(
         "appName"
       )}/src/main.js`,
-      tailJsconfig,
+      config.get("tailwindConfigJs"),
       () => {}
     );
   },
@@ -96,23 +94,17 @@ threads.set("assets", {
 
 threads.set("pinia", {
   name: "Installing Pinia",
-  task: () => {
-    (async () => {
-      const { stdout } = await install(
-        {
-          pinia: "",
-          "node-env-run": "~1",
-          "pkg-install": undefined,
-        },
-        {
-          cwd: `${process.cwd()}/${config.get("framework")}-${config.get(
-            "appName"
-          )}`,
-          dev: true,
-          prefer: "npm",
-        }
-      );
-    })();
+  task: async () => {
+    const { stdoutPinia } = await execa(
+      "npm",
+      ["install", "pinia", "--save-dev"],
+      {
+        cwd: `${process.cwd()}/${config.get("framework")}-${config.get(
+          "appName"
+        )}`,
+      }
+    );
+
     fsi.outputFile(
       `${process.cwd()}/${config.get("framework")}-${config.get(
         "appName"
@@ -128,9 +120,36 @@ threads.set("pinia", {
       piniaStoreConfig,
       () => {}
     );
-    // setTimeout(() => {
-    //   console.log("");
-    // }, 2000);
+  },
+});
+
+threads.set("headlessUiVue", {
+  name: "Installing HeadlessUi for Vue",
+  task: async () => {
+    const { stdoutPinia } = await execa(
+      "npm",
+      ["install", "@headlessui/vue", "--save-dev"],
+      {
+        cwd: `${process.cwd()}/${config.get("framework")}-${config.get(
+          "appName"
+        )}`,
+      }
+    );
+  },
+});
+
+threads.set("headlessUiReact", {
+  name: "Installing HeadlessUi for React",
+  task: async () => {
+    const { stdoutPinia } = await execa(
+      "npm",
+      ["install", "@headlessui/react", "--save-dev"],
+      {
+        cwd: `${process.cwd()}/${config.get("framework")}-${config.get(
+          "appName"
+        )}`,
+      }
+    );
   },
 });
 
@@ -162,26 +181,5 @@ export const use${capitalize(
     actions: {},
 })
 `;
-
-let tailwindconfig = `module.exports = {
-    content: [
-      "./index.html",
-      "./src/**/*.{vue,js,ts,jsx,tsx}",
-    ],
-    theme: {
-      extend: {},
-    },
-    plugins: [],
-  }`;
-
-let tailcssconfig = `@tailwind base;
-@tailwind components;
-@tailwind utilities;`;
-
-let tailJsconfig = `import { createApp } from 'vue'
-import App from './App.vue'
-import './index.css'
-
-createApp(App).mount('#app')`;
 
 export default threads;

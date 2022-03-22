@@ -1,21 +1,22 @@
 import { config } from "./../config.js";
+import { vueTasks } from "./vue/vueTasks.js";
+import { reactTasks } from "./react/reactTasks.js";
 import Listr from "listr";
-import threads from "./registreTasks.js";
+import threads from "./threads.js";
 import chalk from "chalk";
-/*
-- seperate the tasks on own  file with only an export method 
-- 
-*/
+import fsi from "fs-extra";
+import boxen from "boxen";
+import enquirer from "enquirer";
+const { prompt } = enquirer;
+
 const init = () => {
-  let tasks = [];
-  // React
   if (config.get("framework") == "vue") {
     console.log(
       chalk.green(
         `\n\tInstalling Vuejs Project for ${config.get("appName")}\t\n`
       )
     );
-    return (tasks = vueTasks);
+    return vueTasks(threads);
   }
 
   if (config.get("framework") == "react") {
@@ -24,68 +25,31 @@ const init = () => {
         `\n\tInstalling Reactjs Project for ${config.get("appName")}\t\n`
       )
     );
-    return (tasks = reactTasks);
+    return reactTasks(threads);
   }
 };
 
-let tailwindconfig = `module.exports = {
-    content: [
-      "./index.html",
-      "./src/**/*.{vue,js,ts,jsx,tsx}",
-    ],
-    theme: {
-      extend: {},
-    },
-    plugins: [],
-  }`;
-
-let tailcssconfig = `@tailwind base;
-  @tailwind components;
-  @tailwind utilities;`;
-
-let tailJsconfig = `import { createApp } from 'vue'
-  import App from './App.vue'
-  import './index.css'
-  
-  createApp(App).mount('#app')`;
-
-let reactTasks = [
-  {
-    title: threads.get("vite").name,
-    task: threads.get("vite").task,
-  },
-  {
-    title: threads.get("tailwind").name,
-    task: threads.get("tailwind").task,
-  },
-  {
-    title: threads.get("assets").name,
-    task: threads.get("assets").task,
-  },
-];
-
-let vueTasks = [
-  {
-    title: threads.get("vite").name,
-    task: threads.get("vite").task,
-  },
-  {
-    title: threads.get("tailwind").name,
-    task: threads.get("tailwind").task,
-  },
-  {
-    title: threads.get("assets").name,
-    task: threads.get("assets").task,
-  },
-  {
-    title: threads.get("pinia").name,
-    task: threads.get("pinia").task,
-  },
-];
-
-export const installation = (name, options, framework) => {
+export const installation = async (name, options, framework) => {
   config.set("appName", name);
   config.set("framework", framework);
-
-  return new Listr(init());
+  let response = "";
+  if (
+    fsi.existsSync(
+      `${process.cwd()}/${config.get("framework")}-${config.get("appName")}`
+    )
+  ) {
+    response = await prompt({
+      type: "input",
+      name: "override",
+      message: "Project with same name exist, do you want to continue? (y/n)",
+    });
+    if (response.override == "n") process.exit(0);
+    else {
+      fsi.rmSync(
+        `${process.cwd()}/${config.get("framework")}-${config.get("appName")}`,
+        { recursive: true, force: true }
+      );
+      return new Listr(init());
+    }
+  } else return new Listr(init());
 };
